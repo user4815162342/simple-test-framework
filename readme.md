@@ -34,7 +34,8 @@ tests.
 amount of time.
 * Tests can be nested.
 * Tests can be specifically finished, or they can be finished based on
-the number of expected sub-tests and checkpoints.
+the number of expected sub-tests and checkpoints. Either way is useful
+in the right context.
 * Checkpoints are like mini-tests that can be simply marked pass/fail.
 They are equivalent to the way assertions are handled in other testing 
 frameworks.

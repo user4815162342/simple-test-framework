@@ -37,41 +37,52 @@ var deepEqual = function(actual,expected) {
 
 test("Test simple-test-framework",function(t) {
     
-    var subject;
-    subject = new library.Checkpoint("Foo",true);
-    t.check(subject.name === "Foo","Checkpoint has correct value for name");
-    t.check(subject.passed === true,"Checkpoint has correct value for passed.");
-    subject = new library.Checkpoint("Foo","Hello!");
-    t.check(subject.passed === true,"Checkpoint constructor interpets passed argument correctly.")
+    t.test("Creating Checkpoints and Annotations works",function(t) {    
+        var subject;
+        subject = new library.Checkpoint("Foo",true);
+        t.check(subject.name === "Foo","Checkpoint has correct value for name");
+        t.check(subject.passed === true,"Checkpoint has correct value for passed.");
+        subject = new library.Checkpoint("Foo","Hello!");
+        t.check(subject.passed === true,"Checkpoint constructor interpets passed argument correctly.")
+        
+        subject = new library.Annotation("comment",23);
+        t.check(subject.kind === "comment","Annotation has correct kind");
+        t.check(subject.data === 23,"Annotation has correct value for data");
+        t.finish();
+    });
     
-    subject = new library.Annotation("comment",23);
-    t.check(subject.kind === "comment","Annotation has correct kind");
-    t.check(subject.data === 23,"Annotation has correct value for data");
+    t.test("Creating Test objects works",function(t) {
+        
+        // Now, start testing the test object itself.
+        // name, timeout, cb
+        var subject = new library.Test("Foo",4000);
+        // Make sure the subject gets cleaned up if there's an error. Otherwise,
+        // this timeout takes too long without any UI results.
+        t.cleanup(subject.finish.bind(subject));
+        t.check(subject.name === "Foo","Test object has correct name.");
+        t.check(subject.timeout === 4000,"Test object has correct value for timeout");
+        if (!t.check(deepEqual(subject.contents,[]),"Test object has correctly initialized contents")) {
+            t.error("Value of contents:");
+            t.error(subject.contents);
+        }
+        t.check(subject.passed === 0,"Test object has correctly initialized passed value");
+        t.check(subject.failed === 0,"Test object has correctly initialized failed value");
+        t.check(subject.expected === null,"Test object has correctly initialized expected value");
+        t.check(subject.total === 0,"Test object has correctly initialized total value");
+        t.check(subject.pending === 0,"Test object has correctly initialized pending value");
+        t.check(subject.finished === false,"Test object has correctly initialized finished value");
+        t.check(subject.finishReason === null,"Test object has correctly initialized finishReason value");
+        t.check(subject.errors === 0,"Test object has correctly initialized errors value")
+        // Make sure that this test is finished, so we don't have the timeout hanging out.
+
+        subject = new library.Test("Foo");
+        t.check(subject.timeout === 5000,"Test timeout should default to 5000");
+        subject.finish();
+
+        t.check(!subject._timer,"Finishing a test clears it's timer.");
+        t.finish();
+    });
     
-    // Now, start testing the test object itself.
-    // name, timeout, cb
-    subject = new library.Test("Foo",4000);
-    t.check(subject.name === "Foo","Test object has correct name.");
-    t.check(subject.timeout === 4000,"Test object has correct value for timeout");
-    if (!t.check(deepEqual(subject.contents,[]),"Test object has correctly initialized contents")) {
-        t.error("Value of contents:");
-        t.error(subject.contents);
-    }
-    t.check(subject.passed === 0,"Test object has correctly initialized passed value");
-    t.check(subject.failed === 0,"Test object has correctly initialized failed value");
-    t.check(subject.expected === null,"Test object has correctly initialized expected value");
-    t.check(subject.total === 0,"Test object has correctly initialized total value");
-    t.check(subject.pending === 0,"Test object has correctly initialized pending value");
-    t.check(subject.finished === false,"Test object has correctly initialized finished value");
-    t.check(subject.finishReason === null,"Test object has correctly initialized finishReason value");
-    t.check(subject.errors === 0,"Test object has correctly initialized errors value")
-    // Make sure that this test is finished, so we don't have the timeout hanging out.
-    subject.finish();
-    
-    subject = new library.Test("Foo");
-    t.check(subject.timeout === 5000,"Test timeout should default to 5000");
-    subject.finish();
-    t.check(!subject._timer,"Finishing a test clears it's timer.");
 
     // Now, let's do some timeout testing, how about in async,
     // so we can control the timeout.
@@ -191,6 +202,28 @@ test("Test simple-test-framework",function(t) {
         
     });
     
+    t.test("Tests should call cleanup functions when done.",function(t) {
+        var cleanupCount = 0;
+        var finishValue;
+        var subject = new library.Test("subject",function(reason) {
+            finishValue = cleanupCount;
+            cleanupCount = 0;
+        });
+        subject.cleanup(function() {
+            cleanupCount += 1;
+        });
+        subject.cleanup(function() {
+            throw new Error("Ha!");
+        });
+        subject.cleanup(function() {
+            cleanupCount += 1;
+        });
+        subject.finish();
+        t.check(finishValue === 2,"Tests should call all cleanup functions when done, ignoring exceptions, before they notify their parent.");
+        t.check((subject.contents[0] instanceof library.Annotation) && (subject.contents[0].kind === "error"),"Failed cleanup functions should add an error to the parent test.");
+        t.finish();
+    });
+    
     t.test("Nested tests should not notify their parents until any pending tests are done.",function(t) {
         // Use the 'test' method with *no* output here.
         test("Level 1",{writer: null },function(level1) {
@@ -287,6 +320,7 @@ test("Test simple-test-framework",function(t) {
     }
     
     t.test("Domain errors should be caught and not break test.",function(t) {
+        // No checkpoints, this is essentially an async checkpoint.
         domainFn(function() {
             t.finish();
         });

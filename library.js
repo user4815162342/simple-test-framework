@@ -87,7 +87,7 @@ var Test = module.exports.Test = function(name,timeout,cb) {
         }
         this.pending -= 1;
         if ((this.pending === 0) && this.finished) {
-            this._notifyFinish();
+            this._runCleanup();
         }
         // NOTE: Don't increment this.total, that was done at the beginning
         // of the subtest.
@@ -425,12 +425,20 @@ Test.prototype.check = function(result,name) {
    
 }
 
-// NOTE: I'm not using EventEmitters for very specific reasons:
-// 1. I want to avoid drawing in stuff I absolutely do not need.
-// 2. There should never be any need to alert more than one object
-//    that this one is finished.
-// 3. The only thing I ever need to alert about is the test finishing.
-Test.prototype._notifyFinish = function() {
+// NOTE: I'm not using EventEmitters mostly because I want to avoid
+// drawing in stuff I don't really need. I need to handle adding functions,
+// but I don't need to alert about anything but the test finishing,
+// and I don't need the functionality for removing listeners.
+Test.prototype._runCleanup = function() {
+    if (this._cleanup) {
+        while (this._cleanup.length > 0) {
+            try {
+                this._cleanup.shift()();
+            } catch (e) {
+                this.error(e);
+            }
+        }
+    }
     if (typeof this._clientFinished === "function") {
         this._clientFinished(this.finishReason,this.isPassed())
     }
@@ -507,13 +515,38 @@ Test.prototype.finish = function(reason) {
         }
         
         if (this.pending === 0) {
-            this._notifyFinish();
+            this._runCleanup();
             // Otherwise, wait for the subtests to complete themselves.
         }
     } else {
         this.error("An extra attempt was made to finish the test, the reason this time was: '" + reason + "'")
     }
     
+}
+
+/**
+ * Adds a function that will be called when the test is finished, which
+ * is useful for cleaning up resources. The function will receive no 
+ * parameters. This function will be called after the test has been
+ * marked as finished, and after all subtest's have reported as 
+ * finished, but before this test reports to it's parents as finished. 
+ * 
+ * If multiple cleanup functions are added, they will be called in the
+ * order that they were added.
+ * 
+ * Cleanup functions are expected to be synchronous.
+ * 
+ * Parameters:
+ * - fn: A function to be called on cleanup.
+ * */
+Test.prototype.cleanup = function(fn) {
+    if (typeof fn === "function") {
+        if (!this._cleanup) {
+            this._cleanup = [fn];
+        } else {
+            this._cleanup.push(fn);
+        }
+    }
 }
 
 
