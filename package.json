@@ -6,6 +6,9 @@
   "scripts": {
     "test": "./test.js"
   },
+  "dependencies": {
+		"wordwrap": "0.0.2"
+	},
   "keywords": [
     "test"
   ],

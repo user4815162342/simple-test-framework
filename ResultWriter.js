@@ -7,9 +7,9 @@
 var library = require("./library");
 var util = require('util');
 
-// TODO: Handle tty mode:
-// 1. If tty mode, use bold for errors and failed.
-// 2. If tty mode, break at columns as well as \n.
+// I'm bringing this one in simply because I don't want to have
+// to write yet more wordwrap code.
+var wordwrap = require("wordwrap");
 
 /**
  * A ResultWriter accepts a Test results object and writes it's
@@ -31,7 +31,8 @@ var ResultWriter = module.exports = function(stream) {
      * content is output.
      * */
     this.indentIncrease = "  ";
-    
+
+    // TODO: Will this work on Windows?    
     /**
      * Specifies the code to use for turning on bold text.
      * */
@@ -206,13 +207,21 @@ ResultWriter.prototype.writeTestContent = function(item,indent) {
 ResultWriter.prototype.writeData = function(message,lineHeader,bold) {
     lineHeader = lineHeader || "";
     if (typeof message === "string") {
-        if (this._progressBarExists) {
-            this._output.write("*/\n");
-            this._progressBarExists = false;
-        }            
-        var prefix = bold ? this.boldOn : "";
-        var suffix = bold ? this.boldOff : "";
-        this._output.write(prefix + lineHeader + message.replace(/\n/g,"\n" + lineHeader) + "\n" + suffix);
+        // first, wrap the lines if necessary
+        var lines;
+        if (this._output.isTTY) {
+            lines = wordwrap.hard(this._output.columns - lineHeader.length)(message).split(/\n/);
+        } else {
+            // Not a TTY, so we don't have to wrap, so
+            // just split the lines at delimiters
+            lines = message.split(/\n/);
+        }
+        this.endProgress();
+        var prefix = (bold ? (this.boldOn + lineHeader) : lineHeader);
+        var suffix = (bold ? (this.boldOff + "\n") : "\n");
+        for (var i = 0; i < lines.length; i++) {
+            this._output.write(prefix + lines[i] + suffix);
+        }
     } else if (message instanceof Error) {
         this.writeData(util.inspect(message) + "\n" + message.stack,lineHeader,bold);
     } else {
@@ -272,4 +281,11 @@ ResultWriter.prototype.writeError = function(data,indent) {
          this._output.write(indent + "/* " + message + " -");
      }
      
+ }
+ 
+ ResultWriter.prototype.endProgress = function() {
+     if (this._progressBarExists) {
+        this._output.write("*/\n");
+        this._progressBarExists = false;
+     }
  }

@@ -10,6 +10,8 @@ var library = require("./library");
 var ResultWriter = require("./ResultWriter");
 var test = require("./index");
 
+var mockOutput = { write: function() {} }
+
 
 test("Test simple-test-framework",function(t) {
     
@@ -262,9 +264,8 @@ test("Test simple-test-framework",function(t) {
         });
     }
     
-    t.test("Test domain error catching",function(t) {
+    t.test("Domain errors should be caught and not break test.",function(t) {
         domainFn(function() {
-            t.check(true,"Domain error should be caught.");
             t.finish();
         });
     });
@@ -409,16 +410,14 @@ test("Test simple-test-framework",function(t) {
         subject.error(new Error("Foo"));
         subject.finish();
         t.check(function() {
-            new ResultWriter({ write: function() {} }).writeTest(subject);
+            new ResultWriter(mockOutput).writeTest(subject);
         },"ResultWriter does not throw an error when writing results out.");
         t.finish();
     });
     
     t.test("main test function.",function(t) {
         var subject = test("Subject",{
-            output: {
-                write: function() {}
-            }
+            output: mockOutput
         });
         // Use a domain to check for errors in the output.
         t.check(t.doesNotThrow(function() {
