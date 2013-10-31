@@ -8,7 +8,9 @@ var library = require("./library");
 var util = require('util');
 
 // I'm bringing this one in simply because I don't want to have
-// to write yet more wordwrap code.
+// to write yet more wordwrap code. It breaks the philosophy for this
+// module, but this one works so much better than what I could write
+// in a few hours.
 var wordwrap = require("wordwrap");
 
 /**
@@ -32,7 +34,8 @@ var ResultWriter = module.exports = function(stream) {
      * */
     this.indentIncrease = "  ";
 
-    // TODO: Will this work on Windows?    
+    // FUTURE: Test this on windows. I don't know if Windows consoles
+    // are valid TTY's.
     /**
      * Specifies the code to use for turning on bold text.
      * */
