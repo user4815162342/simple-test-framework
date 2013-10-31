@@ -27,7 +27,26 @@ features specific to testing.
 
 # Features:
 
-TODO:
+* Tests can be run async or sync.
+* Async tests make use of domains to catch errors and automatically fail
+tests.
+* Tests can automatically time out if no activity occurs for a certain
+amount of time.
+* Tests can be nested.
+* Tests can be specifically finished, or they can be finished based on
+the number of expected sub-tests and checkpoints.
+* Checkpoints are like mini-tests that can be simply marked pass/fail.
+They are equivalent to the way assertions are handled in other testing 
+frameworks.
+* Checkpoints can be passed based on a condition, or based on whether
+a function throws an error or not.
+* Comments and errors may be added to the results. 
+* Comments and errors may be either strings or objects.
+* Results output is minimized for completed tests which have no errors 
+or failures.
+* The code behind the API is available for direct access, if
+the programmer wants it.
+
 
 ## Getting Started
 

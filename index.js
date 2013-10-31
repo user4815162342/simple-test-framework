@@ -2,8 +2,6 @@
 var library = require("./library");
 var ResultWriter = require("./ResultWriter");
 
-// TODO: Need a readme.md
-
 /**
  * Creates a test object which can be used to track
  * and output test results. The behavior should be pretty much the
@@ -58,11 +56,13 @@ var test = module.exports = function(name,options,body) {
             // cause an error in the test, but we'll never know about it
             // because outputting doesn't work.
             try {
-                clearInterval(progressTimer);
+                if (progressTimer) {
+                    clearInterval(progressTimer);
+                }
                 writer.writeTest(result);
                 if (result.isPassed()) {
                     writer.writeComment("Everything's good!",options.output);
-                }
+                } 
             } catch (e) {
                 console.error(e.stack);
             }
@@ -71,6 +71,7 @@ var test = module.exports = function(name,options,body) {
     var result = new library.Test(name,options.timeout,done);
 
     if (typeof body === "function") {
+        debugger;
         result.run(body);
         if (writer) {
             // Since the output isn't "streaming", there's no way for the

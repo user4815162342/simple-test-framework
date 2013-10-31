@@ -3,6 +3,11 @@
  * The tests for simple-test-framework.
  * */
 
+// TODO: If the test below bails before one of the subject tests timeout,
+// especially with that long timeout one, then the console hangs until
+// that test times out, with no notification to the user. This might
+// be a great use for a teardown function. So, maybe that's a feature
+// I *do* need here.
 
 // Make sure all of the units are pulled in here, instead of dynamically
 // by test. It makes finding syntax errors a lot easier.
@@ -11,6 +16,23 @@ var ResultWriter = require("./ResultWriter");
 var test = require("./index");
 
 var mockOutput = { write: function() {} }
+
+var assert = require('assert');
+
+var deepEqual = function(actual,expected) {
+    // FUTURE: There's probably a better way to check deep equality,
+    // but I don't want to re-write code that's already written,
+    // nor require extra modules I don't need.
+    try {
+        assert.deepEqual(actual,expected);
+        return true;
+    } catch (e) {
+        if (e instanceof assert.AssertionError) {
+            return false;
+        }
+        throw e;
+    }
+}
 
 
 test("Test simple-test-framework",function(t) {
@@ -28,10 +50,10 @@ test("Test simple-test-framework",function(t) {
     
     // Now, start testing the test object itself.
     // name, timeout, cb
-    subject = new library.Test("Foo",30000);
+    subject = new library.Test("Foo",4000);
     t.check(subject.name === "Foo","Test object has correct name.");
-    t.check(subject.timeout === 30000,"Test object has correct value for timeout");
-    if (!t.check(t.deepEqual(subject.contents,[]),"Test object has correctly initialized contents")) {
+    t.check(subject.timeout === 4000,"Test object has correct value for timeout");
+    if (!t.check(deepEqual(subject.contents,[]),"Test object has correctly initialized contents")) {
         t.error("Value of contents:");
         t.error(subject.contents);
     }
@@ -388,15 +410,7 @@ test("Test simple-test-framework",function(t) {
         t.finish();
     });
     
-    t.test("Comparison methods work.",function(t) {
-        var subject = new library.Test("subject");
-        t.check(!subject.deepEqual([],["5"]),"deepEqual does not throw an error.");
-        t.check(!subject.notDeepEqual([],[]),"notDeepEqual does not throw an error.");
-        t.check(!subject.throws(function() {}),"throws does not throw an error.");
-        t.check(!subject.doesNotThrow(function() { throw new Error("Oops!"); }),"doesNotThrow does not throw an error");
-        t.finish();
-    });
-    
+   
     t.test("ResultWriter works.",function(t) {
         var subject = new library.Test("subject");
         // put some things in that would cause it to use different
@@ -420,9 +434,9 @@ test("Test simple-test-framework",function(t) {
             output: mockOutput
         });
         // Use a domain to check for errors in the output.
-        t.check(t.doesNotThrow(function() {
+        t.check(function() {
             subject.finish();
-        }),"Running a simple test from the main test function does not throw an error, even when writing to a stream.");
+        },"Running a simple test from the main test function does not throw an error, even when writing to a stream.");
         t.finish();
     });
     
