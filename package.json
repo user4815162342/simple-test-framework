@@ -1,0 +1,14 @@
+{
+  "name": "simple-test-framework",
+  "version": "0.0.0",
+  "description": "Plain and simple testing framework for node, without all of the beeps and whistles.",
+  "main": "index.js",
+  "scripts": {
+    "test": "./test.js"
+  },
+  "keywords": [
+    "test"
+  ],
+  "author": "Neil M. Sheldon",
+  "license": "MIT"
+}
