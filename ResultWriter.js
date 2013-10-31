@@ -61,7 +61,7 @@ var ResultWriter = module.exports = function(stream) {
 ResultWriter.prototype.writeTest = function(test,indent) {
     indent = indent || "";
 
-     var result = test.isPassed() ? "passed" : test.isComplete() ? (this.boldOn + "failed" + this.boldOff) : (this.boldOn + "incomplete" + this.boldOff);
+     var result = test.isPassed() ? "passed" : test.isCompleted() ? (this.boldOn + "failed" + this.boldOff) : (this.boldOn + "incomplete" + this.boldOff);
     
      this.writeData(util.format("%s -- %d/%d: %s",result,test.passed,test.total,test.name),indent);
     // If the test passed, we don't need to know anything more, a summary is plenty.

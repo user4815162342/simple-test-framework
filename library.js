@@ -453,7 +453,7 @@ Test.prototype._runCleanup = function() {
  *   an error should only be passed if something isn't right)
  * */
 Test.prototype.isPassed = function() {
-    return (this.isComplete()) &&
+    return (this.isCompleted()) &&
             (!this.finishReason) &&
             (this.failed === 0) &&
             (this.errors === 0);
@@ -465,7 +465,7 @@ Test.prototype.isPassed = function() {
  * - pending is 0
  * - expected is null or total
  * */
-Test.prototype.isComplete = function() {
+Test.prototype.isCompleted = function() {
     return (this.finished) &&
             (this.pending === 0) &&
             ((this.expected === null) ||

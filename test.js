@@ -3,12 +3,6 @@
  * The tests for simple-test-framework.
  * */
 
-// TODO: If the test below bails before one of the subject tests timeout,
-// especially with that long timeout one, then the console hangs until
-// that test times out, with no notification to the user. This might
-// be a great use for a teardown function. So, maybe that's a feature
-// I *do* need here.
-
 // Make sure all of the units are pulled in here, instead of dynamically
 // by test. It makes finding syntax errors a lot easier.
 var library = require("./library");
@@ -57,7 +51,8 @@ test("Test simple-test-framework",function(t) {
         // name, timeout, cb
         var subject = new library.Test("Foo",4000);
         // Make sure the subject gets cleaned up if there's an error. Otherwise,
-        // this timeout takes too long without any UI results.
+        // this timeout takes too long without any UI results. Unfortunately,
+        // most other calls to finish must be done inline with the test.
         t.cleanup(subject.finish.bind(subject));
         t.check(subject.name === "Foo","Test object has correct name.");
         t.check(subject.timeout === 4000,"Test object has correct value for timeout");
