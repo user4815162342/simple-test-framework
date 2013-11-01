@@ -49,6 +49,11 @@ the programmer wants it.
 
 ### To install simple-test-framework into your current node project:
 
+Download the source and place in a place where your node package
+can reach it.
+
+Registry on npm is forthcoming, at which point you'll be able to do:
+
 ```bash
 npm install simple-test-framework
 ```
