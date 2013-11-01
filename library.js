@@ -15,20 +15,20 @@
  
  
  /**
-  * Defines a Checkpoint data object which might be added to test results.
+  * Defines a Minitest data object which might be added to test results.
   * There is usually no need to create this yourself, as it is created
-  * with the Test.prototype.checkpoint method.
+  * with the Test.prototype.check and catch methods.
   * parameters:
-  * - name: The name of the checkpoint.
-  * - passed: True if the checkpoint passed, false if the checkpoint failed.
+  * - name: The name of the Minitest.
+  * - passed: True if the Minitest passed, false if the Minitest failed.
   * */
-var Checkpoint = module.exports.Checkpoint = function(name,passed) {
+var Minitest = module.exports.Minitest = function(name,passed) {
     /**
-     * The name of the checkpoint
+     * The name of the Minitest
      * */
     this.name = name;
     /**
-     * True if the checkpoint passed, false if the checkpoint failed.
+     * True if the Minitest passed, false if the Minitest failed.
      * */
     this.passed = !!passed;
 }
@@ -103,29 +103,29 @@ var Test = module.exports.Test = function(name,timeout,cb) {
      * */
     this.name = name;
     /**
-     * This will contain the checkpoints, subtests, comments and error
+     * This will contain the subtests, comments and error
      * messages for the test, in the order they were received.
      * */
     this.contents = [];
     /**
-     * This should contain the number of passed checkpoints and subtests.
+     * This should contain the number of passed subtests.
      * */
     this.passed = 0;
     /**
-     * This should contain the number of failed checkpoints and subtests.
+     * This should contain the number of failed subtests.
      * If this is anything other than zero when the test is considered
      * done, then the test is considered to have failed.
      * */
     this.failed = 0;
     /**
-     * This should contain the expected number of checkpoints and 
-     * subtests. It can be used to determine whether checkpoints were 
+     * This should contain the expected number of
+     * subtests. It can be used to determine whether subtests were 
      * missed. If this is a number, and not equal to this.total when 
      * the test is finished, then the test is considered to have failed.
      * */
     this.expected = null;
     /**
-     * This should contain the total number of checkpoints and subtests
+     * This should contain the total number of subtests
      * added. If this does not match the total of 'passed' and 'failed',
      * then it's possible that a subtest has not yet finished.
      * */
@@ -334,8 +334,8 @@ Test.prototype._checkExpected = function() {
 }
 
 /**
- * Increments the expected number of checkpoints or subtests by a certain 
- * amount. This can be used later to determine if checkpoints were missed. 
+ * Increments the expected number of subtests by a certain 
+ * amount. This can be used later to determine if subtests were missed. 
  * If this is done after the test is marked as finished, an error will be
  * added instead.
  * 
@@ -364,30 +364,23 @@ Test.prototype.addExpected = function(count) {
 }
 
 /**
- * Indicates that a checkpoint has been crossed in the current test. If
+ * Creates a subtest (a Minitest) that passes immediately. If
  * this is called after the test is finished, an error will be added 
  * instead.
  * 
- * The first parameter can be a function or a truthy/falsy value. If the
- * latter, the value is used as the result of the checkpoint. 
- * 
- * If a function is passed, that function is run immediately. If it does
- * not throw an exception, the checkpoint passes, otherwise the checkpoint
- * fails, and the thrown error is written as an error. Note that this
- * function should be synchronous, errors are not caught if the function
- * is asynchronous. Use a subtest for asynchronous functions.
+ * The first parameter is a truthy/falsy value. The value is used as the 
+ * pass/fail result of the subtest. 
  * 
  * The return value allows the 'check' to act as a conditional in an
  * if statement. This is useful, for example, to log an error if the
- * checkpoint fails. Undefined is returned if the test is finished.
+ * subtest fails. Undefined is returned if the test is finished.
  * 
  * Parameters:
- * - result: a boolean indicating whether the checkpoint 
- * passed (true) or failed (false), or a function which is checked for
- * throwing an exception (failed) or not (passed).
- * - name: The name of the checkpoint.
+ * - result: a boolean indicating whether the subtest 
+ * passed (true) or failed (false).
+ * - name: The name of the subtest.
  * 
- * Returns: Boolean whether the checkpoint passed or not, or undefined
+ * Returns: Boolean whether the subtest passed or not, or undefined
  * if the test is already finished.
  * */
 Test.prototype.check = function(result,name) {
@@ -395,35 +388,75 @@ Test.prototype.check = function(result,name) {
         // wake up to avoid a timeout...
         this.ping();
         
-        var error;
-        if (typeof result === "function") {
-            try {
-                result();
-                result = true;
-            } catch (e) {
-                error = e;
-                result = false;
-            }
-        } else {
-            result = !!result;
-        }
-        this.contents.push(new Checkpoint(name,result))
+        result = !!result;
+        this.contents.push(new Minitest(name,result))
         if (result) {
             this.passed += 1;
         } else {
             this.failed += 1;
         }
         this.total += 1;
-        if (error) {
-            this.error(error);
-        }
         this._checkExpected();
         return result;
     } else {
-        this.error("Checkpoint '" + name + "' triggered after test was completed");
+        this.error("Minitest '" + name + "' triggered after test was completed");
     }
    
 }
+
+
+/**
+ * Adds a subtest to the test based on whether a called function 
+ * throws an error. If this is called after the test is finished, an 
+ * error will be added instead.
+ * 
+ * The first parameter is a function, which is run immediately. If it
+ * does not throw an exception, then the subtest passes, otherwise
+ * it fails. If it does fail, the exception is added as an error.
+ * 
+ * Note that this function should be synchronous, errors are not caught 
+ * if the function is asynchronous. Use a subtest for asynchronous 
+ * functions.
+ * 
+ * The return value allows the 'catch' to act as a conditional in an
+ * if statement. This is useful, for example, to log an error if the
+ * subtest fails. Undefined is returned if the test is finished.
+ * 
+ * Parameters:
+ * - fn: a function which is checked for
+ * throwing an exception (failed) or not (passed).
+ * - name: The name of the subtest.
+ * 
+ * Returns: Boolean whether the subtest passed or not, or undefined
+ * if the test is already finished.
+ * */
+Test.prototype.catch = function(fn,name) {
+    if (!this.finished) {
+        // wake up to avoid a timeout...
+        this.ping();
+        
+        var result;
+        if (typeof fn === "function") {
+            try {
+                fn();
+                result = true;
+            } catch (e) {
+                error = e;
+                result = false;
+            }
+            result = this.check(result,name);
+            if (error) {
+                this.error(error);
+            }
+            return result;
+        }
+    } else {
+        this.error("Minitest '" + name + "' triggered after test was completed");
+    }
+   
+}
+
+
 
 // NOTE: I'm not using EventEmitters mostly because I want to avoid
 // drawing in stuff I don't really need. I need to handle adding functions,
@@ -456,7 +489,10 @@ Test.prototype.isPassed = function() {
     return (this.isCompleted()) &&
             (!this.finishReason) &&
             (this.failed === 0) &&
-            (this.errors === 0);
+            (this.errors === 0) &&
+            ((this.expected === null) ||
+             (this.expected === this.total));
+             // If expected > total, then it failed.
 }
 
 /**
@@ -469,7 +505,9 @@ Test.prototype.isCompleted = function() {
     return (this.finished) &&
             (this.pending === 0) &&
             ((this.expected === null) ||
-             (this.expected === this.total));
+             (this.expected >= this.total));
+             // Test is completed if expected is greater than total,
+             // but it will still fail.
 }
 
 

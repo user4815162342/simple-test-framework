@@ -104,14 +104,14 @@ ResultWriter.prototype.writeTestMessages = function(test,indent) {
      *   1) null: then the test finished normally
      *   2) any other: then the test finished abnormally
      * C: test.expected:
-     *   1) null: No checkpoints were specifically planned
-     *   2) == test.total: All checkpoints were crossed and subtests were 
+     *   1) null: No subtests were specifically planned
+     *   2) == test.total: All subtests were crossed and subtests were 
      *        initiated
-     *   3) != test.total: Some checkpoints were not crossed or some
+     *   3) != test.total: Some subtests were not crossed or some
      *        subtests were not initiated
      * D: test.failed:
-     *   1) 0: No checkpoints or subtests have failed.
-     *   2) > 0: Some checkpoint or subtests have failed.
+     *   1) 0: No subtests have failed.
+     *   2) > 0: Some subtests have failed.
      * E: test.errors
      *   1) 0: No error annotations have been added
      *   2) > 0: Error annotations have been added
@@ -131,11 +131,11 @@ ResultWriter.prototype.writeTestMessages = function(test,indent) {
     if (!test.finished) { // incomplete
         this.writeError("Test was not finished before results were output.",indent);
     } else if ((test.expected !== null) &&
-         (test.expected !== test.total)) { // incomplete
+         (test.expected < test.total)) { // incomplete
         var unseenTests = test.expected - test.total;
         var plural = unseenTests == 1 ? "" : "s";
         var were = unseenTests == 1 ? "was" : "were"
-        this.writeError(util.format("%d expected check%s or test%s %s not seen.",unseenTests,plural,plural,were),indent);
+        this.writeError(util.format("%d expected subtest%s %s not seen.",unseenTests,plural,plural,were),indent);
     } else if (test.pending !== 0) { // incomplete
         var were = test.pending == 1 ? "was" : "were"
         this.writeError(util.format("%d subtest%s %s not completed.",test.pending,test.pending === 1 ? "" : "s",were),indent);
@@ -144,11 +144,17 @@ ResultWriter.prototype.writeTestMessages = function(test,indent) {
         // marked by the test itself.
         this.writeError("Test finished abnormally, see results.",indent);
     } if (test.failed !== 0) { // failed
-        this.writeError(util.format("%d test%s failed, see results.",test.failed,test.failed === 1 ? "" : "s"),indent);
+        this.writeError(util.format("%d subtest%s failed, see results.",test.failed,test.failed === 1 ? "" : "s"),indent);
     } else if (test.errors !== 0) { // failed
         var were = test.errors == 1 ? "was" : "were"
         this.writeError(util.format("%d error message%s %s reported, see results.",test.errors,test.errors === 1 ? "" : "s",were),indent);
-    } 
+    } else if ((test.expected !== null) &&
+         (test.expected > test.total)) { // incomplete
+        var tooManyTests = test.total - test.expected;
+        var plural = tooManyTests == 1 ? "" : "s";
+        var were = tooManyTests == 1 ? "was" : "were"
+        this.writeError(util.format("%d too many subtest%s %s seen.",unseenTests,plural,plural,were),indent);
+    }
     
 }
 
@@ -161,7 +167,7 @@ ResultWriter.prototype.writeTestMessages = function(test,indent) {
  * an empty string.
  * */
 ResultWriter.prototype.writeTestContent = function(item,indent) {
-    if (item instanceof library.Checkpoint) {
+    if (item instanceof library.Minitest) {
         this.writeData(util.format("%s: %s",item.passed ? "passed" : (this.boldOn + "failed" + this.boldOff),item.name),indent);
     } else if (item instanceof library.Annotation) {
         switch (item.kind) {

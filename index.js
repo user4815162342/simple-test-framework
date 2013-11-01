@@ -2,6 +2,17 @@
 var library = require("./library");
 var ResultWriter = require("./ResultWriter");
 
+// TODO: Set up on github, and register with NPM.
+
+// FUTURE: Move the API docs from readme into these files. Mark-up the 
+// comments in these files with 'jsdoc' tags, and generate the API 
+// documentation that way. We need to make sure we can generate
+// a first-glance summary in the readme, for those who don't need some 
+// of the more advanced functions.
+// - for regenerating in the readme, something that finds the 'API'
+// section, and the next section after that, is all we need. Or, use
+// HTML comments <!-- --> to mark out where it goes.
+
 /**
  * Creates a test object which can be used to track
  * and output test results. The behavior should be pretty much the
@@ -89,7 +100,7 @@ var test = module.exports = function(name,options,body) {
 // expose the following in case someone wants to use them separately,
 // since they're not easily available when installed with npm.
 test.Test = library.Test;
-test.Checkpoint = library.Checkpoint;
+test.Minitest = library.Minitest;
 test.Comment = library.Comment;
 test.ResultWriter = ResultWriter;
 

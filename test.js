@@ -31,13 +31,13 @@ var deepEqual = function(actual,expected) {
 
 test("Test simple-test-framework",function(t) {
     
-    t.test("Creating Checkpoints and Annotations works",function(t) {    
+    t.test("Creating Minitests and Annotations works",function(t) {    
         var subject;
-        subject = new library.Checkpoint("Foo",true);
-        t.check(subject.name === "Foo","Checkpoint has correct value for name");
-        t.check(subject.passed === true,"Checkpoint has correct value for passed.");
-        subject = new library.Checkpoint("Foo","Hello!");
-        t.check(subject.passed === true,"Checkpoint constructor interpets passed argument correctly.")
+        subject = new library.Minitest("Foo",true);
+        t.check(subject.name === "Foo","Minitest has correct value for name");
+        t.check(subject.passed === true,"Minitest has correct value for passed.");
+        subject = new library.Minitest("Foo","Hello!");
+        t.check(subject.passed === true,"Minitest constructor interpets passed argument correctly.")
         
         subject = new library.Annotation("comment",23);
         t.check(subject.kind === "comment","Annotation has correct kind");
@@ -176,14 +176,14 @@ test("Test simple-test-framework",function(t) {
                 t.check(level1.pending === 1,"Initiating a sub-test increments pending on parent.")
                 t.check(level1.total === 1,"Initiating a sub-test increments the total on parent.");
                 level2.test("Level 3",function(level3) {
-                    level3.check(true,"Suppose that this checkpoint succeeded, which should cause the parent to see a successful test later.");
+                    level3.check(true,"Suppose that this Minitest succeeded, which should cause the parent to see a successful test later.");
                     t.check(level2.pending === 1,"Initiating a second-level sub-test increments pending on its parent.");
                     t.check(level2.total === 1,"Initiating a second-level sub-test increments total on its parent.");
                     level3.finish();
                     t.check(level2.pending === 0,"Finishing a second-level sub-test decrements pending on its parent.");
                     t.check(level2.passed === 1,"Finishing a successful sub-test increments passed on it's parent.");
                     t.check(level2.failed === 0,"Finishing a successful sub-test doesn't increment failed on it's parent.");
-                    level2.check(false,"Suppose that this checkpoint failed, which should cause the parent to see a failed test later..");
+                    level2.check(false,"Suppose that this Minitest failed, which should cause the parent to see a failed test later..");
                     level2.finish();
                     t.check(level1.pending === 0,"Finishing a sub-test decrements pending on its parent.");
                     t.check(level1.failed === 1,"Finishing a failed sub-test increments failed on it's parent.");
@@ -315,7 +315,7 @@ test("Test simple-test-framework",function(t) {
     }
     
     t.test("Domain errors should be caught and not break test.",function(t) {
-        // No checkpoints, this is essentially an async checkpoint.
+        // No Minitests, this is essentially an async Minitest.
         domainFn(function() {
             t.finish();
         });
@@ -362,9 +362,9 @@ test("Test simple-test-framework",function(t) {
         var check = subject.check("Truthy","subtest");
         t.check(check === true,"Calling check returns the truthy value of the condition.");
         t.check(subject.contents.length == 1,"Calling check adds an item to the parent test's contents.");
-        t.check(subject.contents[0] instanceof library.Checkpoint,"Calling check adds a Chekcpoint object to the parent test's contents.");
-        t.check(subject.contents[0].name === "subtest","Calling check adds a Checkpoint object with the specified name.");
-        t.check(subject.contents[0].passed === true,"Calling check adds a Checkpoint object with the specified pass result.");
+        t.check(subject.contents[0] instanceof library.Minitest,"Calling check adds a Chekcpoint object to the parent test's contents.");
+        t.check(subject.contents[0].name === "subtest","Calling check adds a Minitest object with the specified name.");
+        t.check(subject.contents[0].passed === true,"Calling check adds a Minitest object with the specified pass result.");
         t.check(subject.passed === 1,"Calling check increments passed value appropriately.");
         t.check(subject.total === 1,"Calling check increments total value appropriately.");
         subject.check(false,"Nay!");
@@ -372,16 +372,16 @@ test("Test simple-test-framework",function(t) {
         
         // handle functions as the result parameter
         subject.check(function() {},"Does not throw");
-        t.check(subject.contents[2] instanceof library.Checkpoint,"Calling check with function adds a Chekcpoint object to the parent test's contents.");
-        t.check(subject.contents[2].name === "Does not throw","Calling check with function adds a Checkpoint object with the specified name.");
-        t.check(subject.contents[2].passed === true,"Calling check with function that does not throw adds a Checkpoint object with the specified pass result.");
+        t.check(subject.contents[2] instanceof library.Minitest,"Calling check with function adds a Chekcpoint object to the parent test's contents.");
+        t.check(subject.contents[2].name === "Does not throw","Calling check with function adds a Minitest object with the specified name.");
+        t.check(subject.contents[2].passed === true,"Calling check with function that does not throw adds a Minitest object with the specified pass result.");
         t.check(subject.passed === 2,"Calling check with a function increments passed value appropriately.");
         t.check(subject.total === 3,"Calling check with a function increments total value appropriately.");
         
-        subject.check(function() { throw "Oops!" }, "Does throw");
-        t.check(subject.contents[3] instanceof library.Checkpoint,"Calling check with function that throws  adds a Chekcpoint object to the parent test's contents.");
-        t.check(subject.contents[3].name === "Does throw","Calling check with function that throws adds a Checkpoint object with the specified name.");
-        t.check(subject.contents[3].passed === false,"Calling check with function that throws adds a Checkpoint object that failed.");
+        subject.catch(function() { throw "Oops!" }, "Does throw");
+        t.check(subject.contents[3] instanceof library.Minitest,"Calling check with function that throws  adds a Chekcpoint object to the parent test's contents.");
+        t.check(subject.contents[3].name === "Does throw","Calling check with function that throws adds a Minitest object with the specified name.");
+        t.check(subject.contents[3].passed === false,"Calling check with function that throws adds a Minitest object that failed.");
         t.check(subject.failed === 2,"Calling check with a function that throws increments failed value appropriately.");
         t.check(subject.total === 4,"Calling check with a function increments total value appropriately.");
         
