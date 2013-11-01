@@ -2,8 +2,6 @@
 var library = require("./library");
 var ResultWriter = require("./ResultWriter");
 
-// TODO: Set up on github, and register with NPM.
-
 // FUTURE: Move the API docs from readme into these files. Mark-up the 
 // comments in these files with 'jsdoc' tags, and generate the API 
 // documentation that way. We need to make sure we can generate

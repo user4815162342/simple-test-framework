@@ -1,6 +1,6 @@
 {
   "name": "simple-test-framework",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Plain and simple testing framework for node, without all of the beeps and whistles.",
   "keywords": ["test","unit","testing","javascript","node"],
   "homepage": "https://github.com/user4815162342/simple-test-framework",
