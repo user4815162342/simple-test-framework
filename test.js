@@ -353,6 +353,29 @@ test("Test simple-test-framework",function(t) {
         subject.test("5").finish();
         subject.test("6").finish();
         t.check(testFinished,"Adding tests and checks will cause a test to automatically finish if expected is set and the expected number of items are seen.");
+        testFinished = false;
+        subject = new library.Test("subject",function(reason) {
+            testFinished = true;
+        });
+        subject.check(true,"1");
+        subject.check(false,"2");
+        subject.check(true,"3");
+        subject.finishAfter(2);
+        t.check(testFinished,"Setting finishAfter when the value has already been reached should cause the test to automatically finish.");
+        testFinished = false;
+        subject = new library.Test("subject",function(reason) {
+            testFinished = true;
+        });
+        subject.finishAfter(5);
+        subject.finish("bail");
+        t.check(testFinished,"Bailing out of a test that still expects more tests should still finish the test and notify.");
+        if (!t.check(!subject.isCompleted(),"Finishing a test which still expects more sub-tests should leave the test 'incomplete'")) {
+            t.comment("finished = " + subject.finished);
+            t.comment("pending = " + subject.pending);
+            t.comment("expected = " + subject.expected);
+            t.comment("total = " + subject.total);
+        }
+        
         t.finish();
     });
     

@@ -86,8 +86,10 @@ var Test = module.exports.Test = function(name,timeout,cb) {
             this.failed += 1;
         }
         this.pending -= 1;
-        if (this.isCompleted()) {
-            this._runCleanup();
+        // Can't just check isCompleted, as that depends on 
+        // expected.
+        if ((this.pending === 0) && (this.finished)) {
+            this._notifyFinish();
         }
         // NOTE: Don't increment this.total, that was done at the beginning
         // of the subtest.
@@ -471,7 +473,7 @@ Test.prototype.catch = function(fn,name) {
 // drawing in stuff I don't really need. I need to handle adding functions,
 // but I don't need to alert about anything but the test finishing,
 // and I don't need the functionality for removing listeners.
-Test.prototype._runCleanup = function() {
+Test.prototype._notifyFinish = function() {
     if (this._cleanup) {
         while (this._cleanup.length > 0) {
             try {
@@ -501,7 +503,9 @@ Test.prototype.isPassed = function() {
             (this.errors === 0) &&
             ((this.expected === null) ||
              (this.expected === this.total));
-             // If expected > total, then it failed.
+             // If expected > total, then isCompleted would have
+             // returned false. If <, then it completed, but
+             // it failed.
 }
 
 /**
@@ -514,8 +518,8 @@ Test.prototype.isCompleted = function() {
     return (this.finished) &&
             (this.pending === 0) &&
             ((this.expected === null) ||
-             (this.expected >= this.total));
-             // Test is completed if expected is greater than total,
+             (this.expected <= this.total));
+             // Test is completed if expected is less than total,
              // but it will still fail.
 }
 
@@ -561,8 +565,11 @@ Test.prototype.finish = function(reason) {
             }
         }
         
-        if (this.isCompleted()) {
-            this._runCleanup();
+        // Can't just check isCompleted, because that depends on 
+        // expected, and we need to finish whether we've seen all
+        // of those tests or not.
+        if (this.pending === 0) {
+            this._notifyFinish();
             // Otherwise, wait for the subtests to complete themselves.
         }
     } else {
