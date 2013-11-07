@@ -187,7 +187,7 @@ going to happen.
 * **body** `function` Optional function body for asynchronous test.
 
 After testing code is completed, your test should call the finish
-method to indicate that it finished normally, or use the expected 
+method to indicate that it finished normally, or use the finishAfter
 feature, otherwise it will not end until the test times out.
 
 After a subtest is finished, it's parent test will be notified
@@ -259,28 +259,6 @@ Cleanup functions will be called, in the order they were declared,
 after the test and all of it's subtests are finished, but before
 the parent test is notified of this test finishing.
 
-#### addExpected
-
-`function(count)`
-
-Increments the expected number of subtests. 
-
-* **count** `number` The number of additional expected tests.
-
-This is similar to the `plan` feature of other test frameworks. Once
-the total number of items has reached the expected number, the test
-will automatically finish itself.
-
-The main use of this feature is to specify the number of checks that
-are expected, so that you don't need to explicitly call finish when 
-all of them have been declared. This is most useful if you need to 
-initiate subtests  in asynchronous code that may get
-called later than your call to `finish`.
-
-Unlike other test frameworks, it is possible to add more expected tests
-after the value is initially set. This allows you to conditionally add
-expected tests as you need them.
-
 #### finish
 
 `function([reason])`
@@ -303,6 +281,30 @@ normally, meaning that it failed. Any string can be passed to this
 method, but the primary use of the reason argument is to indicate 
 whether the test timed out (`reason = "timeout"`) or bailed due to
 an uncaught exception (`reason = "bail"`).
+
+#### finishAfter
+
+`function(count)`
+
+Tells the test to automatically finish after the specified number of
+tests have been seen.
+
+* **count** `number` The number of expected tests.
+
+This is similar to the `plan` feature of other test frameworks. Once
+the total number of items has reached the expected number, the test
+will automatically finish itself.
+
+The main use of this feature is to specify the number of checks that
+are expected, so that you don't need to explicitly call finish when 
+all of them have been declared. This is most useful if you need to 
+initiate subtests in asynchronous code that may get called later than 
+your call to `finish`.
+
+Unlike other test frameworks, it is possible to change this after the
+value is initially set. Just be careful, if the test has already reached
+the previous number when you change it, the test will already be
+finished.
 
 #### comment
 

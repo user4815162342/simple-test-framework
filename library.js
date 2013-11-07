@@ -86,7 +86,7 @@ var Test = module.exports.Test = function(name,timeout,cb) {
             this.failed += 1;
         }
         this.pending -= 1;
-        if ((this.pending === 0) && this.finished) {
+        if (this.isCompleted()) {
             this._runCleanup();
         }
         // NOTE: Don't increment this.total, that was done at the beginning
@@ -119,9 +119,10 @@ var Test = module.exports.Test = function(name,timeout,cb) {
     this.failed = 0;
     /**
      * This should contain the expected number of
-     * subtests. It can be used to determine whether subtests were 
-     * missed. If this is a number, and not equal to this.total when 
-     * the test is finished, then the test is considered to have failed.
+     * subtests after a call to finishAfter. It can be used to 
+     * determine whether subtests were missed. If this is a number, 
+     * and not equal to this.total when the test is finished, then 
+     * the test is considered to be incomplete or failed.
      * */
     this.expected = null;
     /**
@@ -314,7 +315,9 @@ Test.prototype.test = function(name,timeout,body) {
         this.pending += 1;
         // increment total now, even though it hasn't passed or failed yet.
         this.total += 1;
-        this._checkExpected();
+        // since the finish after depends on total value, check
+        // if we should be finished.
+        this._checkFinishAfter();
         if (typeof body === "function") {
             result.run(body);
         } else {
@@ -325,39 +328,43 @@ Test.prototype.test = function(name,timeout,body) {
     }
 }
 
-Test.prototype._checkExpected = function() {
+Test.prototype._checkFinishAfter = function() {
     if ((this.expected !== null) &&
-         (this.expected === this.total)) {
+         (this.expected <= this.total)) {
        // automatically finish normally.
        this.finish();
     }
 }
 
 /**
- * Increments the expected number of subtests by a certain 
- * amount. This can be used later to determine if subtests were missed. 
- * If this is done after the test is marked as finished, an error will be
- * added instead.
+ * Tells the test to automatically finish after a certain number of tests
+ * have been made. If that number of tests hasn't been reached by the
+ * time the test times out, or otherwise finishes, the test will be
+ * considered incomplete. 
  * 
- * If this is set, then when total reaches the value of expected, the
- * test will automatically finish normally, with no reason to call finish.
- * Note that if you increment expected more than once, you must make sure
- * that you do this before the test count has reached the previous 
- * expected count, or any further checks and tests will cause errors.
+ * This can be called more than once to change the number of tests that
+ * are expected. When increasing, be careful that the test has already
+ * completed. When decreasing, this may automatically finish the test
+ * if that number of tests are already completed.
+ * 
+ * Note that if the expected number of tests are not reached, and 
+ * finish is never called, then the test will time out.
+ * Also note that having more tests than this value when the test is 
+ * finished means that the test has not passed.
  * 
  * Parameters:
- * - count: The number to increase by. Yes, this *can* be negative.
+ * - count: The number of tests to expect.
  * */
-Test.prototype.addExpected = function(count) {
+Test.prototype.finishAfter = function(count) {
     if (!this.finished) {
         // wake up to avoid a timeout...
         this.ping();
         
-        if (this.expected === null) {
-            this.expected = count;
-        } else {
-            this.expected += count;
-        }
+        this.expected = count;
+        // check if we should finish the test, such as if the user
+        // set this to a lower value than the number of tests than
+        // have already been made.
+        this._checkFinishAfter();
     } else {
         this.error("Expected test count increased by " + count + " after completion.");
     }
@@ -396,7 +403,9 @@ Test.prototype.check = function(result,name) {
             this.failed += 1;
         }
         this.total += 1;
-        this._checkExpected();
+        // since the finish after depends on total value, check
+        // if we should be finished.
+        this._checkFinishAfter();
         return result;
     } else {
         this.error("Minitest '" + name + "' triggered after test was completed");
@@ -552,7 +561,7 @@ Test.prototype.finish = function(reason) {
             }
         }
         
-        if (this.pending === 0) {
+        if (this.isCompleted()) {
             this._runCleanup();
             // Otherwise, wait for the subtests to complete themselves.
         }

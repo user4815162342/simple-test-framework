@@ -238,7 +238,7 @@ test("Test simple-test-framework",function(t) {
     });
     
     t.test("Tests should bail on exception",function(t) {
-        t.addExpected(6);
+        t.finishAfter(6);
         var worked = false;
         var subject = new library.Test("subject",function(reason) {
             // 1
@@ -342,11 +342,10 @@ test("Test simple-test-framework",function(t) {
         var subject = new library.Test("subject",function(reason) {
             testFinished = true;
         });
-        subject.addExpected(2);
-        t.check(subject.expected === 2,"Calling addExpected the first time sets the value of expected to the supplied argument.");
-        subject.addExpected(1);
-        subject.addExpected(3);
-        t.check(subject.expected === 6,"Calling addExpected thereafter adds the specified argument to the existing expected.");
+        subject.finishAfter(2);
+        t.check(subject.expected === 2,"Calling finishAfter the first time sets the value of expected to the supplied argument.");
+        subject.finishAfter(6);
+        t.check(subject.expected === 6,"Calling finishAfter thereafter changes the value of expected.");
         subject.test("1").finish();
         subject.check(true,"2");
         subject.check(false,"3");
