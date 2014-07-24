@@ -401,23 +401,34 @@ test("Test simple-test-framework",function(t) {
         t.check(subject.total === 3,"Calling check with a function increments total value appropriately.");
         
         subject.catch(function() { throw "Oops!" }, "Does throw");
-        t.check(subject.contents[3] instanceof library.Minitest,"Calling check with function that throws  adds a Chekcpoint object to the parent test's contents.");
-        t.check(subject.contents[3].name === "Does throw","Calling check with function that throws adds a Minitest object with the specified name.");
-        t.check(subject.contents[3].passed === false,"Calling check with function that throws adds a Minitest object that failed.");
-        t.check(subject.failed === 2,"Calling check with a function that throws increments failed value appropriately.");
-        t.check(subject.total === 4,"Calling check with a function increments total value appropriately.");
+        t.check(subject.contents[3] instanceof library.Minitest,"Calling catch with function that throws  adds a Chekcpoint object to the parent test's contents.");
+        t.check(subject.contents[3].name === "Does throw","Calling catch with function that throws adds a Minitest object with the specified name.");
+        t.check(subject.contents[3].passed === false,"Calling catch with function that throws adds a Minitest object that failed.");
+        t.check(subject.failed === 2,"Calling catch with a function that throws increments failed value appropriately.");
+        t.check(subject.total === 4,"Calling catch with a function increments total value appropriately.");
         
-        t.check(subject.contents[4] instanceof library.Annotation,"Calling check with function that throws adds an Annotation object to the parent test's contents.");
-        t.check(subject.contents[4].kind === "error","Calling check with function that throws adds an error Annotation.");
-        t.check(subject.errors === 1,"Calling check with a function that throws increments the errors value appropriately.");
+        t.check(subject.contents[4] instanceof library.Annotation,"Calling catch with function that throws adds an Annotation object to the parent test's contents.");
+        t.check(subject.contents[4].kind === "error","Calling catch with function that throws adds an error Annotation.");
+        t.check(subject.errors === 1,"Calling catch with a function that throws increments the errors value appropriately.");
         
+        subject.catch(function() { }, "Doesn't throw");
+        t.check(subject.contents[5] instanceof library.Minitest,"Calling catch with function that doesn't throw  adds a Chekcpoint object to the parent test's contents.");
+        t.check(subject.contents[5].name === "Doesn't throw","Calling catch with function that doesn't throw adds a Minitest object with the specified name.");
+        t.check(subject.contents[5].passed === true,"Calling catch with function that doesn't throw adds a Minitest object that failed.");
+        t.check(subject.passed === 3,"Calling catch with a function that doesn't throw increments passed value appropriately.");
+        t.check(subject.total === 5,"Calling catch with a function increments total value appropriately.");
+        if (!t.check(subject.contents.length == 6,"Calling catch with a function that doesn't throw only adds one item.")) {
+            t.error(subject.contents[6]);
+        }
+        
+
         subject.finish();
         subject.check(true,"This should be an error.");
-        t.check(subject.contents.length == 6,"Calling check on a finished test adds an item to the parent test's contents.");
-        if (!t.check(subject.contents[5] instanceof library.Annotation,"Calling check on a finished test adds an Annotation object to the parent test's contents.")) {
-            t.error(subject.contents[5]);
+        t.check(subject.contents.length == 7,"Calling check on a finished test adds an item to the parent test's contents.");
+        if (!t.check(subject.contents[6] instanceof library.Annotation,"Calling check on a finished test adds an Annotation object to the parent test's contents.")) {
+            t.error(subject.contents[6]);
         }
-        t.check(subject.contents[5].kind === "error","Calling check on a finished test adds an error Annotation object to the parent test's contents.");
+        t.check(subject.contents[6].kind === "error","Calling check on a finished test adds an error Annotation object to the parent test's contents.");
         t.finish();
     });
     

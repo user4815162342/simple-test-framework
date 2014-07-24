@@ -447,6 +447,7 @@ Test.prototype.catch = function(fn,name) {
         this.ping();
         
         var result;
+        var error;
         if (typeof fn === "function") {
             try {
                 fn();
