@@ -198,14 +198,18 @@ Test.prototype._onError = function(err) {
 }
 
 /**
- * This really doesn't need to be called, as it is called automatically
- * by the built-in functions which create tests when a test body is
- * passed. See Test.prototype.test for an explanation of the difference
- * between running a test async vs. sync.
+ * This is the same function called by the 'test' method to run the
+ * test body. If no function is passed to that method it will not be run,
+ * and it should be run with this method instead, or the test will time 
+ * out. Occasionally, it may be necessary to create the test, do some
+ * other processing, and *then* run the test. This function allows you
+ * to do that.
  * 
  * This method runs the specified function in an async manner (using
  * process.nextTick), passing the test object to it. An error occurring 
  * during this function will cause the test to bail, finishing the test. 
+ * See Test.prototype.test for an explanation of the difference
+ * between running a test async vs. sync.
  * 
  * Note that there is nothing wrong with calling this method multiple
  * times on the same test (with multiple bodies), as long as 
@@ -214,17 +218,10 @@ Test.prototype._onError = function(err) {
  * end the test, making any further calls to run just fill the test result
  * with errors.
  * 
- * NOTE: If you have any use-case for this remaining public, let
- * me know, as it might otherwise be deprecated at some point.
- * 
  * Parameters:
  * - body: A function, which will receive this test as the first parameter
  * when run.
  * */
-// NOTE: This is a separate function only because it is used both by 
-// Test.prototype.test, but also the main module 'test', and since
-// that main method is in a different library, it also has to be
-// public. 
 Test.prototype.run = function(body) {
     // Try...catch will only catch errors in blocking functions,
     // and on('uncaughtException') would have to be filtered to the

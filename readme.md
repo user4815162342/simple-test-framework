@@ -209,6 +209,9 @@ from the function, and can be controlled synchronously. The timeout
 functionality will still work, but any exceptions that occur will not
 automatically bail out the test. 
 
+Note that it is possible to create a Test object withou a test body, 
+and run a test asynchronously on it using Test.run, as well.
+
 #### check
 
 `function(condition,name) boolean`
@@ -331,6 +334,23 @@ This works almost exactly as `comment`, with two primary differences.
 First, any errors added to the results causes the test to fail, even
 if all subtests passed. Second, the output of the
 error will be formatted to stand out more than a comment.
+
+#### run
+
+`function(body)`
+
+Runs an asynchronous function as part of the test. Normally, this does 
+not need to be called, as it is called automatically by the test method.
+However, there are cases where it is useful to run it separately from
+the 'test' method, or even run more than one body on the same test. 
+
+If you wish to run multiple bodies on the same test, keep
+in mind that there is no guarantee of order of which body will run first,
+and they are all run asynchronously, no matter how synchronous the code
+inside them is. Test.finish should only be called once, and only when the
+last body to run is finished.
+
+* **body** `Function` Function body for the asynchronous test.
 
 #### isPassed
 
