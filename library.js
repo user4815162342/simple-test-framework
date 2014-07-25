@@ -281,7 +281,8 @@ Test.prototype.run = function(body) {
  * *not* have run by the time this function returns. However, if the
  * test body throws an exception, or contains asynchronous calls to
  * functions which throw an exception, these exceptions will be caught,
- * and the test will automatically bail.
+ * and the test will automatically bail. The test object will be returned
+ * for further configuration.
  * 
  * If a test function is *not* passed, then the test object will be
  * returned from this function for the programmer to manipulate at will, 
@@ -319,6 +320,7 @@ Test.prototype.test = function(name,timeout,body) {
         this._checkFinishAfter();
         if (typeof body === "function") {
             result.run(body);
+            return result;
         } else {
             return result;
         }

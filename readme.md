@@ -175,7 +175,7 @@ returned by the function.
 
 #### test
 
-`function(name,[timeout],[body]) [Test]`
+`function(name,[timeout],[body]) Test`
 
 Creates a subtest on the current test.
 
@@ -209,8 +209,11 @@ from the function, and can be controlled synchronously. The timeout
 functionality will still work, but any exceptions that occur will not
 automatically bail out the test. 
 
-Note that it is possible to create a Test object withou a test body, 
-and run a test asynchronously on it using Test.run, as well.
+A test that is already in synchronous mode can be shifted into asynchronous
+mode by calling a function using Test.run.
+
+Either way, the Test object will be returned from the function, allowing
+for more complicated behavior.
 
 #### check
 
