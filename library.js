@@ -478,7 +478,7 @@ Test.prototype._notifyFinish = function() {
     if (this._cleanup) {
         while (this._cleanup.length > 0) {
             try {
-                this._cleanup.shift()();
+                this._cleanup.pop()();
             } catch (e) {
                 this.error(e);
             }
@@ -587,7 +587,7 @@ Test.prototype.finish = function(reason) {
  * finished, but before this test reports to it's parents as finished. 
  * 
  * If multiple cleanup functions are added, they will be called in the
- * order that they were added.
+ * reverse order that they were added.
  * 
  * Cleanup functions are expected to be synchronous.
  * 
