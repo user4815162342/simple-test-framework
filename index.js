@@ -80,7 +80,6 @@ var test = module.exports = function(name,options,body) {
     var result = new library.Test(name,options.timeout,done);
 
     if (typeof body === "function") {
-        debugger;
         result.run(body);
         if (writer) {
             // Since the output isn't "streaming", there's no way for the
@@ -90,6 +89,7 @@ var test = module.exports = function(name,options,body) {
                 writer.showProgress("Running test:");
             },500);
         }
+        return result;
     } else {
         return result;
     }
