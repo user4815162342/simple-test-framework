@@ -1,6 +1,6 @@
 {
   "name": "simple-test-framework",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Plain and simple testing framework for node, without all of the beeps and whistles.",
   "keywords": [
     "test",
